@@ -1,6 +1,6 @@
 # Data Visualization and Reproducible Research
 
-> Firstname Lastname. 
+> Rene Perez. 
 
 
 The following is a sample of products created during the _"Data Visualization and Reproducible Research"_ course.
