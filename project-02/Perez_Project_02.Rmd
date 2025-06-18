@@ -1,0 +1,294 @@
+---
+title: "Data Visualization - Mini-Project 2"
+author: "Rene Perez `rperez8013@floridapoly.com`"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet posuere massa. Donec dignissim enim quis ligula pretium congue. Vivamus at nisl at turpis dictum iaculis sit amet at nunc. In faucibus, nunc quis suscipit bibendum, sapien magna scelerisque dui, at lacinia enim risus non lectus. Mauris vel dignissim leo. Aenean interdum sem dolor. In ac mauris non quam scelerisque mattis. Mauris aliquet, magna sed convallis dictum, lectus elit cursus quam, in scelerisque orci nulla auctor eros.
+
+Integer ac volutpat urna. Duis elit dui, eleifend sit amet faucibus nec, feugiat quis purus. Ut blandit aliquet sapien, sit amet interdum risus blandit at. Ut finibus tellus blandit lacus ornare malesuada. Praesent semper ex non eros hendrerit, ut rhoncus tellus porttitor. Mauris urna turpis, pellentesque in nisl id, ornare eleifend enim. Sed consectetur ex molestie lectus gravida euismod.
+
+
+
+### Reading data set
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getwd()
+```
+
+
+```{r,echo=FALSE, warning=FALSE, results='hide', message=FALSE}
+library(tidyverse)
+library(socviz)
+library(plyr)
+library(psych)
+library(ggplot2)
+#library(ggpattern)
+library(directlabels)
+library(gapminder)
+library(kableExtra)
+
+library(corrplot)
+library(tidyverse)
+#library(hrbrthemes)
+library(viridis)
+library(forcats)
+library(GGally)
+library(sf)
+library(gganimate)
+library(gifski)
+library(plotly)
+library(broom)
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+houses <- read.csv("../../dataviz_final_project/data/california_housing.csv")
+```
+
+### Visualization of the dataset
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+head(houses, 6)
+```
+
+### Structure of the datase
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+str(houses)
+```
+
+### Data Summary
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+summary(houses, na.rm = TRUE)
+ 
+```
+
+
+
+
+### Ploting data distribution
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#define Min-Max normalization function
+min_max_norm <- function(x) {
+    (x - min(x)) / (max(x) - min(x))
+  }
+
+
+
+hist_data <- houses %>% select(-c(longitude, latitude, ocean_proximity))
+
+
+multi.hist(  scale(hist_data[1:7]))
+  
+  
+
+```
+
+
+
+
+
+
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+houses %>% group_by(ocean_proximity) %>% 
+  tally() %>% 
+  ggplot(mapping = aes(x = fct_reorder(ocean_proximity, n),
+                       y = n,
+                       fill = ocean_proximity)) +
+scale_y_log10()+
+  geom_col()+
+  theme_classic() +
+  labs(title = "Distribution of Houses by Distance to the Ocean",
+       subtitle = "Numbers in scale log10",
+       x = '',
+       y = '')+
+  theme(plot.title.position = "plot",
+        legend.position = "none")
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+cor_house <- cor(houses[,sapply(houses, is.numeric)]) %>% 
+  kbl() %>% 
+  kable_styling(position = "center",
+                bootstrap_options = "bordered",
+                row_label_position = "left",
+                latex_options = "scale_down")
+
+cor_house
+```
+
+
+```{r, warning=TRUE,message=FALSE, echo=FALSE}
+ggpairs( select(houses, -c( ocean_proximity, total_bedrooms))) 
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+colnames(houses)
+```
+
+
+### Spatial Visualization
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+cou_data <- map_data("county", region = "california")
+```
+
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+base1 <- ggplot(data = cou_data, mapping = aes(x = long, y = lat, group = group)) +
+ geom_polygon(color = "black", fill = "white") +
+  coord_quickmap() +
+  theme_void() 
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+
+spat_house <-  select(houses, c(longitude, latitude, median_house_value, ocean_proximity,  housing_median_age))
+
+
+
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+base2 <-  base1 +
+  
+  geom_point(alpha = 0.4, data = spat_house, mapping = aes(x = longitude,
+                                              y = latitude,
+                                              group = housing_median_age,
+                                              color = median_house_value/1000,
+                                              shape = ocean_proximity))+
+  labs(title = "California Housing Market",
+       caption = "Source: California Housing Dataset") +
+  theme_minimal() +
+  theme(plot.title.position = "plot")+
+  guides(color = guide_legend(title = "Median Value 1K"),
+         shape = guide_legend(title = "Ocean Proximity")) 
+
+ base2 
+```
+### Interactive Plot
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ggplotly(base2)
+```
+
+
+
+
+### Map Animation
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+animation <- base2 +
+  transition_time(housing_median_age)+
+  ggtitle('Median Age: {frame_time}: ',
+          subtitle = 'Frame{frame} of {nframes}')
+
+age <- max(spat_house$housing_median_age) - min(spat_house$housing_median_age) + 1
+
+animated_map<- animate(animation, nframes = age, fps = 2)
+animated_map
+
+```
+
+
+
+
+### Hot Encoding Ocean Proximity
+
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE}
+enc_data <- model.matrix(~ocean_proximity, data = houses)
+```
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+enc_data <- as.data.frame(list(houses, enc_data)) # joins datasets.
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+colnames(enc_data)
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+enc_data <- select(enc_data, -c("ocean_proximity", "X.Intercept."))
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+cor(enc_data)
+```
+
+
+### Linear Regression Analysis
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+model_houses <- lm(median_house_value ~ ., data = enc_data)
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+summary(model_houses)
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+mod_coef <- broom::tidy(model_houses, conf.int = TRUE) %>% 
+  filter(term != "(Intercept)")
+
+
+```
+
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE}
+mod_coef
+```
+
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(data = mod_coef, mapping = aes(x = estimate,
+                                      y = fct_rev(term))) +
+  geom_pointrange(mapping = aes(xmin = conf.low,
+                                xmax = conf.high),
+                  color = "red",
+                  size = 0.3) +
+  geom_vline(xintercept = 0,
+             color = "blue",
+             alpha = .5) +
+  theme_minimal() +
+  labs(title = "Linear Regression Visualization",
+       x="Estimate",
+       y ="")+
+  theme(plot.title.position = "plot")
+
+```
+

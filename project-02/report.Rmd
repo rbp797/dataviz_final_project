@@ -1,0 +1,613 @@
+---
+title: "Data Visualization - Mini-Project 2 'Report' "
+author: "Rene Perez `rperez8013@floridapoly.com`"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Introduction:
+
+This Data-visualization project is composed of California Housing Prices from the 1990 Census of the State of California.
+
+1. [California Housing Prices](https://www.kaggle.com/datasets/camnugent/california-housing-prices.)
+
+
+The objective is to make use of the toolset and principles of data visualization, displaying and uncovering trends, patterns, tendencies, and outlieres, using ggplot for R, this report will create:
+
+1. Data transformation using functions like, filter, select, group_by and other.
+
+2. Bar charts,line charts, and others.
+
+3. Scatter plots, histograms.
+
+4. Dashboards.
+
+5. Gggplot is the library used
+
+6. Coding language is R.
+
+7. Rstudio is the integrated development environment.
+
+8. For spatial visualization the package is SF.
+
+9. Fitting of a Linear Regression Analysis.
+
+
+
+
+The California Housing Prices contains the median house prices of California from the 1990 census. Here's a short summary of each term:
+
+
+
+* *longitude:* A measure of how far west a house is; a higher value is farther west
+
+* *latitude:* A measure of how far north a house is; a higher value is farther north
+
+* *housingMedianAge:* Median age of a house within a block; a lower number is a newer building
+
+* *totalRooms:* Total number of rooms within a block
+
+* *totalBedrooms:* Total number of bedrooms within a block
+
+* *population:* Total number of people residing within a block
+
+* *households:* Total number of households, a group of people residing within a home unit, for a block
+
+* *medianIncome:* Median income for households within a block of houses (measured in tens of thousands of US Dollars)
+
+* *medianHouseValue:* Median house value for households within a block (measured in US Dollars)
+
+* *oceanProximity:* Location of the house w.r.t ocean/sea
+
+
+Initially, I was drawn to the dataset of Houses in the West Roxbury neighborhood, yet when I started analyzing it does not have the spatial data needed to create a map plot. in addtion to the process of:
+
+*    Gathering the data
+
+*    Visualizing the data
+
+*    Plotting the data
+
+*    Finding correlations within the data
+
+I want to tell the history about how the prices move according to the distance to the ocean, this information is contained in the California Housing Prices dataset. 
+
+By taking this class, I have started to use the principles of data visualization as we are learning them:
+
+1. Know Your Audience
+
+* Application:
+
+    * Tailor visuals to the audience’s level of data literacy.
+
+    * Use simple charts (e.g., bar, line, pie) for general audiences, and more complex ones (e.g., heatmaps, scatter plots) for technical viewers.
+
+2. Choose the Right Chart Type
+
+* Application:
+
+  *  Use bar charts for comparisons.
+
+  * Use line charts for trends over time.
+  
+  * Use map-plots to visualize data point in a map.
+
+  
+
+  * Use scatter plots for correlation.
+
+  *  Use heatmaps or choropleths for intensity across geography or matrices.
+
+3. Simplify and Remove Clutter
+
+* Application:
+
+  *  Eliminate 3D effects, unnecessary gridlines, or distracting colors.
+
+  *  Use white space effectively to draw attention to key insights.
+
+  *  Use data-to-ink ratio thinking—remove any visual element that doesn’t communicate data.
+
+4. Use Color Purposefully
+
+* Application:
+
+  *  Use color to highlight key insights (e.g., red for risks, green for success).
+
+  *  Ensure color-blind-friendly palettes.
+
+  *  Use consistent color meaning across visuals (e.g., blue always means "this year").
+
+5. Provide Context
+
+* Application:
+
+  *  Always include clear axis labels, titles, units, and legends.
+
+  *  Compare values against benchmarks, averages, or goals.
+
+  *  Use annotations or captions to guide interpretation when needed.
+
+6. Show the Data Honestly
+
+* Application:
+
+  *  Start axes at zero (when appropriate) to avoid misleading the viewer.
+
+  *  Don’t manipulate scales to exaggerate or hide differences.
+
+  *  Represent proportional data accurately (e.g., don’t make area sizes misleading).
+
+7. Tell a Story
+
+* Application:
+
+  *  Use a sequence of visuals to walk viewers through a narrative (e.g., before vs. after, cause vs. effect).
+
+  *  Use titles and subtitles to communicate key takeaways.
+
+  * Guide the viewer: what do we want them to learn, conclude, or act upon?
+
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+getwd()
+```
+
+
+```{r,echo=FALSE, warning=FALSE, results='hide', message=FALSE}
+
+
+library(tidyverse)
+library(socviz)
+library(plyr)
+library(psych)
+library(ggplot2)
+#library(ggpattern)
+library(directlabels)
+library(gapminder)
+library(kableExtra)
+
+library(corrplot)
+library(tidyverse)
+#library(hrbrthemes)
+library(viridis)
+library(forcats)
+library(GGally)
+library(sf)
+library(gganimate)
+library(gifski)
+library(plotly)
+library(broom)
+library(stargazer)
+library(tinytex)
+#library(webshot2)
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+houses <- read.csv("../../dataviz_final_project/data/california_housing.csv")
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+head(houses, 6)
+```
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+str(houses)
+```
+
+
+***
+
+
+### Data Summary
+
+
+
+> Data summary is a concise way to describe and understand the main features of a dataset. It helps to quickly grasp patterns, trends, and outliers without going into the raw data.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+summary(houses, na.rm = TRUE)
+ 
+```
+
+
+
+***
+
+
+### Ploting data distribution
+
+
+> Histogram is a graphical representation of the distribution of a numeric dataset. It groups data into intervals (called bins) and shows how many values fall into each bin. 
+Why we want to plot an histogram of the data?
+To understand the distribution (normal, skewed, bimodal, etc.)
+
+* To spot outliers or clusters
+
+* To summarize large datasets
+
+* To compare shapes of distributions across groups
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#define Min-Max normalization function
+min_max_norm <- function(x) {
+    (x - min(x)) / (max(x) - min(x))
+  }
+
+
+
+hist_data <- houses %>% select(-c(longitude, latitude, ocean_proximity))
+
+
+multi.hist(  scale(hist_data[1:7]))
+  
+  
+
+```
+
+
+
+
+### Graph of the Distribution of Houses by Distance to Ocean.
+
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+library(scales)
+
+houses %>% group_by(ocean_proximity, median_house_value) %>% 
+  tally() %>% 
+  ggplot(mapping = aes(x = fct_reorder(ocean_proximity, n),
+                       y = n,
+                       #fill = ocean_proximity,
+                       colour  = median_house_value)) +
+scale_y_log10()+
+  geom_col()+
+  theme_classic() +
+  labs(title = "Distribution of Houses by Distance to the Ocean",
+       subtitle = "Numbers in scale log10",
+       x = '',
+       y = '')+
+  theme(plot.title.position = "plot")+
+   scale_colour_continuous(labels = scales::label_comma())
+  
+ 
+```
+
+
+> It is likely that the Island feature is skewing the data due to its value feature.
+
+
+
+
+***
+
+### Correlation Table
+
+
+Pearson Correlation measures the linear relationship between two variables.
+Range: from -1 to +1
+
+* +1 = perfect positive correlation
+
+* 0 = no correlation
+
+* -1 = perfect negative correlation
+
+Does correlation always imply causation?
+Correlation is often the first clue, but to imply causation, we usually need:
+
+* Controlled experiments
+
+* Longitudinal studies
+
+* Strong theoretical support
+
+* Ruling out confounders
+
+Still correlation means two variables are related — when one changes, the other tends to change as well in positive or negative direction.
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+cor_house <- cor(houses[,sapply(houses, is.numeric)]) %>% 
+  kbl() %>% 
+  kable_styling(position = "center",
+                bootstrap_options = "bordered",
+                row_label_position = "left",
+                latex_options = "scale_down")
+
+cor_house
+```
+
+
+### Correlation Graphs
+
+```{r, warning=TRUE,message=FALSE, echo=FALSE}
+ggpairs( select(houses, -c( ocean_proximity, total_bedrooms))) 
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+colnames(houses)
+```
+
+
+### Spatial Visualization Graph
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE,results='hide'}
+cou_data <- map_data("county", region = "california")
+```
+
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+base1 <- ggplot(data = cou_data, mapping = aes(x = long, y = lat, group = group)) +
+ geom_polygon(color = "black", fill = "white") +
+  coord_quickmap() +
+  theme_void() 
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+
+spat_house <-  select(houses, c(longitude, latitude, median_house_value, ocean_proximity,  housing_median_age))
+
+
+
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+base2 <-  base1 +
+  
+  geom_point(alpha = 0.4, data = spat_house, mapping = aes(x = longitude,
+                                              y = latitude,
+                                              group = housing_median_age,
+                                              color = median_house_value/1000,
+                                              shape = ocean_proximity))+
+  labs(title = "California Housing Market",
+       caption = "Source: California Housing Dataset") +
+  theme_minimal() +
+  theme(plot.title.position = "plot")+
+  guides(color = guide_legend(title = "Median Value 1K"),
+         shape = guide_legend(title = "Ocean Proximity")) 
+
+ base2 
+```
+
+
+### Interactive Plot
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ggplotly(base2)
+```
+
+
+
+```{r,echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+
+ggsave("base2.svg", plot = base2)
+
+```
+
+
+
+### Map Animation
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+animation <- base2 +
+  transition_time(housing_median_age)+
+  ggtitle('Median Age: {frame_time}: ',
+          subtitle = 'Frame{frame} of {nframes}')
+
+age <- max(spat_house$housing_median_age) - min(spat_house$housing_median_age) + 1
+
+animated_map<- animate(animation, nframes = age, fps = 2)
+animated_map
+
+```
+
+
+
+
+### One Hot Encoding Ocean Proximity Correlation Table
+
+> As I want to focus on the relationship between the Median House Value and Median House Price, I need to transform de data, and peform One Hot Encoding:
+One Hot Encoding transforms each category value into a new binary (0 or 1) column.
+
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE}
+enc_data <- model.matrix(~ocean_proximity, data = houses)
+```
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+enc_data <- as.data.frame(list(houses, enc_data)) # joins datasets.
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+colnames(enc_data)
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+enc_data <- select(enc_data, -c("ocean_proximity", "X.Intercept."))
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+cor(enc_data)
+```
+
+
+### Linear Regression Analysis
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+model_houses <- lm(median_house_value ~ ., data = enc_data)
+```
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE,}
+summary(model_houses)
+```
+
+
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+
+#stargazer(model_houses, type="html", out="lm_houses.html")
+
+#webshot(url = "lm_houses.html")
+```
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+mod_coef <- broom::tidy(model_houses, conf.int = TRUE) %>% 
+  filter(term != "(Intercept)")
+
+
+```
+
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+mod_coef
+```
+
+### Linear Regression Confident Intervales Plot
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(data = mod_coef, mapping = aes(x = estimate,
+                                      y = fct_rev(term))) +
+  geom_pointrange(mapping = aes(xmin = conf.low,
+                                xmax = conf.high),
+                  color = "red",
+                  size = 0.3) +
+  geom_vline(xintercept = 0,
+             color = "blue",
+             alpha = .5) +
+  theme_minimal() +
+  labs(title = "Linear Regression Visualization",
+       x="Estimate",
+       y ="")+
+  theme(plot.title.position = "plot")
+
+```
+
+
+
+### Linear Regression Graph
+
+```{r,  echo=FALSE, warning=FALSE, message=FALSE,}
+par(mfrow=c(2,3))
+
+plot(model_houses,which=1:6)
+```
+
+
+**The standard error** measures the precision of a sample statistic (like the mean or a regression coefficient). It tells you how much the estimate is expected to vary if you repeated the sampling process many times.
+
+* A small SE means the estimate is more precise.
+
+* A large SE means the estimate is more variable (less reliable).
+
+* SE is used to compute confidence intervals and t-values.
+
+**A t-value (or t-statistic)** is a number that comes from a t-test, which is a statistical method used to compare means and determine if differences are statistically significant. The t-value measures how far your sample statistic (like a sample mean) is from the null hypothesis value, in units of standard error.
+
+* A larger t-value (positive or negative) means your result is further from the null hypothesis.
+
+* A t-value near 0 means your sample mean is close to the null hypothesis mean.
+
+* You compare the t-value to a critical value (based on degrees of freedom and chosen confidence level) to decide if the result is statistically significant.
+
+**R-squared** (also written as R^2) is a statistical measure that tells you how well your regression model fits the data. Specifically, it represents the proportion of the variance in the dependent variable that is explained by the independent variable(s).
+
+
+
+**Summary:**
+
+1. The model fits reasonably well (R² ≈ 0.65).
+
+2. Most variables are statistically significant.
+
+3. median_income is the strongest positive predictor.
+
+4. Location features (longitude, latitude, ocean_proximity) are very important.
+
+5. Population and housing structure (rooms, households) affect value but may be entangled in multicollinearity[^1].
+
+> **Very Important Predictors**
+
+------------------------------------------------------------------------------
+
+
+|_Predictor_      |_Estimate_      |_t-value_      |_Observations_   |
+|:--------------|:-------------|:------------|:--------------|  
+|median_income  |+39,260       |116.2        |Strongest positive effect on house value. More income = higher house value.|
+|population	    |−37.97	       |−35.3	       |Larger populations are associated with lower house values.                 |
+|longitude	    |−26,810	     |−26.3	       |More western location (longitude more negative) = lower value.|
+|latitude	      |−25,480	     |−25.4	       |More northern location = lower value. (Suggests high-value areas are clustered in southern California.)|  
+|housing_median_age|+1,073	   |+24.4	       |Older homes tend to be more valuable.|
+|ocean_proximityINLAND | −39,280	     |−22.5	|Inland properties are much cheaper compared to the reference category.|
+
+
+> **Important Predictors**
+
+
+|_Predictor_      |_Estimate_      |_t-value_      |_Observations_   |
+|:--------------|:-------------|:------------|:--------------|  
+|total_bedrooms	|+100.6	       |+14.6	More   |bedrooms = higher value, but likely correlated with income or household size.|
+|total_rooms	  |−6.19	       |−7.83	       |Surprisingly negative, may indicate multicollinearity (e.g., with households or bedrooms).|
+|households	    |+49.6	       |+6.66	       |More households = higher median value (urban/suburban effect).|
+|ocean_proximityISLAND | +152,900 | +4.97	   |Island properties are significantly more valuable.|
+
+
+
+> **Less Important (still statistically significant)**
+
+|_Predictor_      |_Estimate_      |_t-value_      |_Observations_   |
+|:--------------|:-------------|:------------|:--------------|  
+|ocean_proximityNEAR.OCEAN|+4,278|+2.73      |	Small positive impact on value.|
+|ocean_proximityNEAR.BAY |−3,954|	−2.07	     |Small negative effect (barely significant).
+
+
+
+> **Next Steps**
+
+* Plot absolute t-values or standardized coefficients.
+
+* Use stepwise selection, Lasso regression, or random forest to compare and confirm variable impact.
+
+* Check for multicollinearity (e.g., using VIF scores) to see if some variables are redundant.
+
+
+
+
+ [^1]:Multicollinearity happens when two or more predictor variables in a regression model are highly correlated with each other. This means they contain overlapping information, which makes it hard for the model to determine which variable is actually influencing the outcome.
