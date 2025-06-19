@@ -734,6 +734,9 @@ plot(mod, which = 1:4)
 
 
 
+```{r, echo=FALSE, results='hide'}
+stargazer::stargazer(mod,type = "html")
+```
 
 
 ```{r, echo=FALSE, warning=FALSE,  message=FALSE,}

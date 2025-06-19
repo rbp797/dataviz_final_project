@@ -1,0 +1,925 @@
+---
+title: "Data Visualization - Mini-Project 1"
+author: "Rene Perez  -`rperez8013@floridapoly.edu`"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+## Introduction:
+
+This Data-visualization project is composed of two sections or two datasets.
+
+1. [All Summer Hits Billboard list](https://github.com/reisanar/datasets/blob/master/all_billboard_summer_hits.csv).
+
+2. [Student Habits vs Academic Performance](https://www.kaggle.com/datasets/jayaantanaath/student-habits-vs-academic-performance?resource=download).
+
+The objective is to make use of the tool set and principles of data visualization, displaying and uncovering trends, patterns, tendencies, and outliers, using ggplot for R, this report will create:
+
+1. Data transformation using functions like, filter, select, group_by and other.
+
+2. Bar charts,line charts, and others.
+
+3. Scatter plots, histograms.
+
+4. Dashboards.
+
+5. Gggplot is the library used
+
+6. Coding language is R.
+
+7. Rstudio is the integrated development environment.
+
+
+
+The Summer Hits data set have the values of the following list that represents audio features commonly used to analyze and describe songs, often derived from services like Spotify's audio analysis. Here's a short summary of each term:
+
+*  *Danceability:* How suitable a track is for dancing based on tempo, rhythm, and beat stability.
+
+*  *Energy:* A measure of intensity and activity in a track. High energy means loud, fast, and noisy.
+
+*  *key:* The musical key (pitch class) the track is in (e.g., C, D, E...).
+
+*  *Loudness:* Overall loudness in decibels (dB). Useful for comparing relative volumes of tracks.
+
+*  *Mode:* Indicates the modality—major (1) or minor (0).
+
+*  *Speechiness:* Detects presence of spoken words. High values indicate more talking (like a podcast).
+
+*  *Acousticness:* Likelihood that the track is acoustic. Higher values = more acoustic.
+
+*  *Instrumentalness:* Predicts the absence of vocals. Closer to 1 = more instrumental.
+
+*  *Liveness:* Detects presence of an audience. High values = live performance feel.
+
+*  *Valence:* Musical positivity. Higher values sound happier or more cheerful.
+
+*  *Tempo:* Beats per minute (BPM), indicating speed of the track.
+
+*  *Time_signature:* Beats per bar (e.g., 4 for 4/4 time).
+
+*  *Key_mode:* Combination of key and mode, often represented as a string (e.g., "C major", "A minor").
+
+These features are used in music analysis, recommendation engines, DJ software, and more.
+
+
+Initially, I was drawn to the All Summer Hits dataset because I was curious about how many hits each artist had on the list. As I began working through the process of:
+
+*    Gathering the data
+
+*    Visualizing the data
+
+*    Plotting the data
+
+*    Finding correlations within the data
+
+I discovered that the music dataset contained much more technical information than I had anticipated. This led me to develop a new plan: to explore how the components of music have evolved over the decades, and tell this story.
+
+By taking this class, I have started to use the principles of data visualization as we are learning them:
+
+1. Know Your Audience
+
+* Application:
+
+    * Tailor visuals to the audience’s level of data literacy.
+
+    * Use simple charts (e.g., bar, line, pie) for general audiences, and more complex ones (e.g., heatmaps, scatter plots) for technical viewers.
+
+2. Choose the Right Chart Type
+
+* Application:
+
+  *  Use bar charts for comparisons.
+
+  * Use line charts for trends over time.
+
+  
+
+  * Use scatter plots for correlation.
+
+  *  Use heatmaps or choropleths for intensity across geography or matrices.
+
+3. Simplify and Remove Clutter
+
+* Application:
+
+  *  Eliminate 3D effects, unnecessary gridlines, or distracting colors.
+
+  *  Use white space effectively to draw attention to key insights.
+
+  *  Use data-to-ink ratio thinking—remove any visual element that doesn’t communicate data.
+
+4. Use Color Purposefully
+
+* Application:
+
+  *  Use color to highlight key insights (e.g., red for risks, green for success).
+
+  *  Ensure color-blind-friendly palettes.
+
+  *  Use consistent color meaning across visuals (e.g., blue always means "this year").
+
+5. Provide Context
+
+* Application:
+
+  *  Always include clear axis labels, titles, units, and legends.
+
+  *  Compare values against benchmarks, averages, or goals.
+
+  *  Use annotations or captions to guide interpretation when needed.
+
+6. Show the Data Honestly
+
+* Application:
+
+  *  Start axes at zero (when appropriate) to avoid misleading the viewer.
+
+  *  Don’t manipulate scales to exaggerate or hide differences.
+
+  *  Represent proportional data accurately (e.g., don’t make area sizes misleading).
+
+7. Tell a Story
+
+* Application:
+
+  *  Use a sequence of visuals to walk viewers through a narrative (e.g., before vs. after, cause vs. effect).
+
+  *  Use titles and subtitles to communicate key takeaways.
+
+  * Guide the viewer: what do we want them to learn, conclude, or act upon?
+
+
+8. Specifics for Each Data Set.
+
+* Summer Hits:
+
+  * Analysis of evolution for:
+  
+    * Numeric values:
+    
+      * Identify and interpret similar values across the dataset.
+      
+      * Different Values.
+      
+* Students Habits Performance:
+
+  * Create a Linear Regression Analyis:
+    
+    * Select variables where the p-value equals 0.001 to ensure statistical significance
+    
+    * Use scatter plots to visually analyze the relationship between these variables and exam performance.
+
+
+
+
+
+
+
+```{r load_library, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+
+
+#install.packages("psych")
+
+#install.packages("rlang")
+
+
+#install.packages('ggpattern',repos='http://cran.us.r-project.org')d
+#install.packages('directlabels')
+#rm(list = ls())
+
+#.rs.restartR()
+
+library(tidyverse)
+library(socviz)
+library(plyr)
+library(psych)
+library(ggplot2)
+#library(ggpattern)
+library(directlabels)
+library(gapminder)
+library(kableExtra)
+
+library(corrplot)
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+```{r get_working_directory, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+getwd()
+```
+
+
+
+
+
+
+
+```{r read_data_Set, echo=FALSE, warning=FALSE,  message=FALSE,results='hide'}
+all_summer <- read.csv("../../dataviz_final_project/data/all_billboard_summer_hits.csv")
+
+head(all_summer)
+```
+
+
+
+
+```{r view_data_set_structure, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+str(all_summer)
+```
+#### Creating histograms of the data set
+
+```{r data_set_plot, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+
+multi.hist(all_summer[,sapply(all_summer, is.numeric)])
+
+```
+
+#### Creating Correlation Plot.
+  
+  
+```{r correlation, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+
+cor(all_summer[,sapply(all_summer, is.numeric)]) %>% 
+  kbl() %>% 
+  kable_styling(position = "center",
+                bootstrap_options = "bordered",
+                row_label_position = "left",
+                latex_options = "scale_down")
+```
+  
+#### Creating a Heat Map
+  
+```{r corr_plot, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+
+
+corrplot( cor(all_summer %>% dplyr::select(where(is.numeric)))) 
+  
+
+```
+
+
+  
+  
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+
+all_summer %>% 
+  mutate( decade = floor(year/10)*10) %>%
+  group_by(decade, artist_name) %>% 
+  tally() 
+
+
+  
+```
+
+
+```{r,  echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+
+
+all_by_decade <- all_summer %>% 
+  mutate( decade = floor(year/10)*10) %>%
+  group_by(decade) %>% 
+  select(-year)
+  
+
+
+```
+
+
+
+
+```{r,echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+all_by_decade
+```
+
+
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+all_means_decade <- all_by_decade %>% 
+  dplyr::select(where(is.numeric))
+
+
+
+
+```
+
+#### Creating Summary Statistics
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE, }
+
+
+
+as.data.frame(apply(all_means_decade,2,summary)) %>% 
+  kbl() %>% 
+  kable_styling()
+
+
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+all_means <- all_by_decade %>% 
+  group_by(decade) %>% 
+  summarise_if(is.numeric, mean, na.rm = TRUE)
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+
+evo_loud <- ggplot(data = all_means, mapping = aes(x = decade,
+                                       y = loudness,
+                                       linewidth = loudness,
+                                       colour = factor(decade))) +
+  geom_segment(aes(xend = decade,
+                   yend = 0)) +
+  scale_color_brewer(palette = "Set2") +
+  theme_classic()+
+  labs(title = "Summer Hits Billboards",
+    subtitle = "Evolution of Loudness by Decade",
+    x = "",
+    y = "",
+    caption = "Source: All Billboard Summer Hits Data Set")+
+  theme(plot.title.position = "plot") +
+  guides(colour = guide_legend(title = "Decade"),
+         linewidth = guide_legend(title = "loudness")) 
+  
+
+  #guides(fill = guide_legend(title = "Decade")) # changes the title of the labels
+
+  
+  
+
+evo_loud
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+ggplot(data = all_means, mapping = aes(x = decade,
+                                       y = tempo,
+                                       linewidth = tempo,
+                                       colour =factor(decade))) +
+  geom_segment(aes(xend = decade,
+                   yend = 0))+
+  scale_color_brewer(palette = "Set2") +
+  theme_classic()+
+  labs(title = "Summer Hits Billboards",
+    subtitle = "Evolution of Tempo by Decade",
+    x = "",
+    y = "",
+    caption = "Source: All Billboard Summer Hits Data Set")+
+  theme(plot.title.position = "plot") +
+  guides(colour = guide_legend(title = "Decade"),
+         linewidth = guide_legend(title = "Tempo"))
+```
+
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+all_means
+```
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+ggplot(data = all_means, mapping = aes(x = decade,
+                                       y = time_signature,
+                                       linewidth = time_signature,
+                                       colour = factor(decade))) +
+  geom_segment(aes(xend = decade,
+                   yend = 0)) +
+  scale_color_brewer(palette = "Set2") +
+  theme_classic()+
+  labs(title = "Summer Hits Billboards",
+    subtitle = "Evolution of Time Signature by Decade",
+    x = "",
+    y = "",
+    caption = "Source: All Billboard Summer Hits Data Set")+
+  theme(plot.title.position = "plot") +
+  guides(colour = guide_legend(title = "Decade"),
+         linewidth = guide_legend(title = "time_signature"))+
+  coord_flip()
+
+  #guides(fill = guide_legend(title = "Decade")) # changes the title of the labels
+```
+
+
+
+
+```{r echo=FALSE, warning=FALSE,  message=FALSE,}
+evo_min <-  ggplot(data = all_means, mapping = aes(x = decade,
+                                       y = duration_ms,
+                                       linewidth = duration_ms/1000,
+                                       colour = factor(decade))) +
+  geom_segment(aes(xend = decade,
+                   yend = 0)) +
+  scale_color_brewer(palette = "Set2") +
+  theme_classic()+
+  labs(title = "Summer Hits Billboards",
+    subtitle = "Evolution of Duration in Segundos by Decade",
+    x = "",
+    y = "",
+    caption = "Source: All Billboard Summer Hits Data Set")+
+  theme(plot.title.position = "plot") +
+  guides(colour = guide_legend(title = "Decade"),
+         linewidth = guide_legend(title = "Duration in Seconds")) +
+  coord_flip() 
+
+evo_min  
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,results='hide'}
+all_long <- all_means %>%  select(-c(loudness, tempo, duration_ms,time_signature)) %>% 
+  pivot_longer(-decade, names_to = "variable", values_to = "value")
+```
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+all_long
+```
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+library(ggrepel)
+
+evol_lin <- ggplot(data = all_long, mapping = aes(x = decade,
+                                      y = value,
+                                      colour =variable ))+
+  geom_line(alpha = 0.7) +
+  scale_color_manual(values=c('navy', '#ff0000', '#00331f', "#686D88", "red3", "#00ff99", "#ac7339"))+
+  theme_classic() +
+  theme(legend.position = "none") +
+  geom_dl(aes(label=variable), method ="smart.grid") +
+  #geom_text(aes(label = variable ), position = 'identity', check_overlap = TRUE,hjust = 1)+
+  labs(title = "Summer Hits Billboard",
+       subtitle = "Evolution of Components of the Songs \nAcross Decades",
+       x = "",
+       y = "",
+       caption = "Source: All Billboard Summer Hits Data Set") 
+
+evol_lin
+```
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+
+not_numeric <- all_by_decade %>% 
+  group_by(decade) %>% 
+  select_if(negate(is.numeric))
+  
+  
+
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+not_numeric
+```
+
+
+
+
+```{r, fig.width=10, fig.height=10, echo=FALSE, warning=FALSE,  message=FALSE,results='hide'}
+not_numeric %>% 
+  group_by(key_mode, decade) %>%  
+  tally() %>% 
+  ggplot(aes(x = key_mode,
+             y = n,
+             fill = as.factor(decade))) +
+  geom_col(position = 'dodge')+
+  #geom_text(aes(label = n ), position = position_stack(vjust = 0.5), size = 3, color = "black") +
+  coord_flip() +
+  labs(title = "Summer Hits Billboard",
+    subtitle = "Key Mode by Decade",
+       x = "",
+       y = "",
+    caption = "Source: All Billboard Summer Hits Data Set") +
+  theme_bw()+
+  theme(plot.title.position = "plot") +
+  guides(fill = guide_legend(title = "Decade"))
+  
+```
+
+
+
+
+
+```{r, fig.width=10, fig.height=10, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+not_numeric %>% 
+  group_by(key_mode, decade) %>%  
+  tally() %>% 
+  ggplot(aes(x = key_mode,
+             y = n,
+             fill = as.factor(decade))) +
+  geom_col()+
+  geom_text(aes(label = n ), position = position_stack(vjust = 0.5), size = 3, color = "black") +
+  coord_flip() +
+  labs(title = "Summer Hits Billboard",
+    subtitle = "Key Mode by Decade",
+       x = "",
+       y = "",
+    caption = "Source: All Billboard Summer Hits Data Set") +
+  theme_bw()+
+  theme(plot.title.position = "plot") +
+  guides(fill = guide_legend(title = "Decade"))
+  
+```
+
+
+
+```{r, fig.height=10, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+artist_two <-  not_numeric %>% group_by(decade, artist_name) %>% tally() %>% 
+  arrange(desc(decade)) %>% 
+  filter( n > 1) %>% 
+    ggplot(mapping = aes(x =artist_name,
+                       y = n,
+                       fill =  factor(decade)))  +
+  geom_col() +
+  coord_flip() +
+  theme_classic() +
+  theme(plot.title.position = "plot") +
+  labs(title ="Artists with 2+ Summer Billboard Hits  ",
+       x = " ",
+       y = " ",
+       caption = "Source: All Billboard Summer Hits Data Set") +
+  guides(fill = guide_legend(title = "Decade")) # changes the title of the labels
+
+
+artist_two
+```
+
+
+
+
+```{r fig.width=10, echo=FALSE, warning=FALSE,  message=FALSE,}
+alb_two <- not_numeric %>% 
+  group_by(album_name, artist_name, decade, album_img) %>% 
+  tally() %>% 
+  filter(n > 1) %>% 
+  ggplot(mapping = aes(x = artist_name,
+                       y = n,
+                       fill = factor(decade),
+                        )) +
+  geom_tile() +
+  geom_text(aes(label = album_name ), position = position_stack(vjust = 0.5,), size = 3, color = "navy") +
+  coord_flip()+
+  theme_classic()+
+  labs(title = "Artist with a Album with 2+ Summer Hits",
+        
+       x ="",
+       y ="") +
+  theme(plot.title.position = "plot")+
+  guides(fill = guide_legend(title = "Decade") ) +
+  annotate(geom="label", x=17.5, y=.8, label="Album title",
+              color="red")
+  
+  
+alb_two  
+
+```
+
+
+
+
+
+## Student Habits performance
+
+
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+students <- read.csv("../../dataviz_final_project/data/student_habits_performance.csv")
+```
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,results='hide'}
+str(students)
+```
+
+#### Creating data set Histogram
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+multi.hist(students[,sapply(students, is.numeric)])
+
+```
+
+
+
+
+
+#### Summary Statistics
+
+
+
+```{r echo=FALSE, warning=FALSE,  message=FALSE,}
+
+
+
+
+
+
+summary(students[,sapply(students, is.numeric)]) %>% 
+  kbl() %>% 
+  kable_styling()
+
+
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE, results='hide'}
+
+#library(Hmisc)
+
+cor(students[,sapply(students, is.numeric)]) %>% 
+  kbl() %>% 
+  kable_styling(position = "center",
+                bootstrap_options = "bordered",
+                row_label_position = "left",
+                latex_options = "scale_down")
+```
+
+
+
+#### Heat Map Visualization
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+#(students[,sapply(students, is.numeric)]
+
+corrplot(cor(students[,sapply(students, is.numeric)]))
+
+```
+
+
+
+
+```{r carsktable, results="asis", echo=FALSE, warning=FALSE,  message=FALSE,results='hide'}
+
+
+
+sapply(students, typeof) %>% 
+  kbl() %>% 
+  kable_styling(position = "center",
+                bootstrap_options = "bordered",
+                row_label_position = "left",
+                latex_options = "scale_down")
+  
+
+```
+
+
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+ggplot(data = students, mapping = aes(x = study_hours_per_day,
+                                      y = exam_score,
+                                      color = gender,
+                                      shape = part_time_job,
+                                      ))+
+  geom_point(alpha = .9)+
+  scale_color_brewer(palette = "Dark2") +
+  theme_classic() +
+  labs(title = "Relation Exam Score to Hrs of Study",
+       subtitle = "Categorized by Gender and Work Status",
+       x = "Hrs of Study by Day",
+       y = "Exam Score") +
+  theme(plot.title.position = "plot") +
+  guides(color = guide_legend(title = "Gender",),
+         shape = guide_legend(title ="Part time Job"))
+
+```
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+ggplot(data = students, mapping = aes(x = exercise_frequency,
+                                      y = exam_score,
+                                      #color = gender,
+                                      ))+
+  geom_density_2d_filled () +
+  labs(title = "Relation Exam Score to Exercise Freqency",
+       #subtitle = "Categorized by Gender and Work Status",
+       x = "Excersice Frequency",
+       y = "Exam Score") +
+  theme(plot.title.position = "plot")
+  #scale_color_brewer(palette = "Dark2")
+```
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+ggplot(data = students, mapping = aes(x = social_media_hours,
+                                      y = exam_score,
+                                      color = gender,
+                                      shape = part_time_job))+
+  geom_count() +
+  labs(title = "Relation Exam Score to Social Media Hrs",
+       subtitle = "Categorized by Gender and Work Status",
+       x ="Social Media Hrs.",
+       y = "Exam Score") +
+  theme(plot.title.position = "plot") +
+  guides(color = guide_legend(title = "Gender",),
+         shape = guide_legend(title ="Part time Job"))
+         #geom_count = guide_legend(title = "Size"))
+
+  #scale_color_brewer(palette = "Dark2")
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+ggplot(data = students, mapping = aes(x = mental_health_rating,
+                                      y = exam_score,
+                                      color = gender,
+                                       shape = part_time_job))+
+  geom_count(alpha = 0.5) +
+  labs(title = "Relation Exam Score to Mental Health Rating",
+       subtitle = "Categorized by Gender and Work Status",
+       x ="Mental Health Rating",
+       y = "Exam Score") +
+  theme(plot.title.position = "plot") +
+  guides(color = guide_legend(title = "Gender",),
+         shape = guide_legend(title ="Part time Job"))
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+ggplot(data = students, mapping = aes(x = netflix_hours,
+                                      y = exam_score,
+                                      color = gender,
+                                      shape = parental_education_level))+
+  geom_count(alpha = 0.5) +
+  labs(title = "Relation Exam Score to Netflix Hrs.",
+       subtitle = "Categorized by Gender, Work Status \n Parental Education Level",
+       x ="Netflix Hrs",
+       y = "Exam Score") +
+  theme(plot.title.position = "plot") +
+  guides(color = guide_legend(title = "Gender",),
+         shape = guide_legend(title ="Parental Education Level"))
+
+```
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+ggplot(data = students, mapping = aes(x = sleep_hours,
+                                      y = exam_score,
+                                      color = gender,
+                                      shape = parental_education_level))+
+  geom_count(alpha = 0.5) +
+  labs(title = "Relation Exam Score to Sleep Hrs..",
+       subtitle = "Categorized by Gender, Work Status \n Parental Education Level",
+       x ="Sleep Hrs.",
+       y = "Exam Score") +
+  theme(plot.title.position = "plot") +
+  guides(color = guide_legend(title = "Gender",),
+         shape = guide_legend(title ="Parental Education Level"))
+  
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+ggplot(data = students, mapping = aes(x = attendance_percentage,
+                                      y = exam_score,
+                                      color = gender,
+                                      shape = parental_education_level))+
+  geom_count(alpha= 0.4) +
+  labs(title = "Relation Exam Score to Attendance %",
+       subtitle = "Categorized by Gender, Work Status, and \nParental Education Level",
+       x ="Attendance %",
+       y = "Exam Score") +
+  theme(plot.title.position = "plot") +
+  guides(color = guide_legend(title = "Gender",),
+         shape = guide_legend(title ="Parental Education Level"))
+```
+
+
+#### Linear Regression Analysis.
+
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+mod <- lm(exam_score ~ ., data = select(students, -c(student_id)))
+```
+
+#### Linear Regression Results.
+```{r, echo=FALSE, warning=FALSE,  message=FALSE,}
+
+summary(mod)
+
+
+```
+
+#### Plotting Linear Regression
+
+```{r, fig.height=10, echo=FALSE, warning=FALSE,  message=FALSE,}
+par(mfrow=c(2,2))
+plot(mod, which = 1:4)
+#?plot.lm
+```
+
+
+
+
+
+####  **Multiple Linear Regression Summary**
+
+* Formula: exam_score ~ . (using all variables except student_id)
+
+* Observations: 1,000 (based on 980 DF and 19 predictors)
+
+* R-squared: 0.9018 → the model explains 90.18% of the variance in exam scores.
+
+* Adjusted R-squared: 0.8999 → very strong fit, adjusted for the number of predictors.
+
+* F-statistic: 473.9, p < 2.2e-16 → the model is statistically significant.
+
+
+
+🧠 **Insights**
+
+1. **_Most impactful positive predictors:_** 
+* study_hours_per_day,
+* mental_health_rating,
+* sleep_hours,
+* exercise_frequency,
+* attendance_percentage
+
+2. **_Most detrimental:_**
+* social_media_hours,
+* netflix_hours
+* Lifestyle and habits matter more than background/demographic variables like gender, age, or parental education.
+
+
+ **Analysis of Coefficients (Significant ones)**
+
+
+|Variable             |Estimate          |Interpretation     |
+|:--------------------|:-----------------|:------------------|
+|study_hours_per_day  |+9.57            |Every additional hour studied per day increases exam score by ~9.57 points (very strong effect).|
+|social_media_hours	  |–2.60	          |Every extra hour on social media decreases score by ~2.6 points.|
+|netflix_hours        |	–2.28	          | Similar negative impact as social media.|
+|attendance_percentage|	+0.14	          |A 1% increase in attendance leads to ~0.14 point increase in score.|
+|sleep_hours          |+1.99	          |More sleep per night improves performance.|
+|exercise_frequency	  |+1.45	          |Higher frequency of exercise boosts exam scores.|
+|mental_health_rating	|+1.94	          |Better mental health strongly improves academic results.|
+
+
+
+⚠️ **Non-significant Variables (p > 0.05)**
+
+1. These variables do not show a statistically significant relationship with exam score:
+
+* age,
+* gender,
+* part_time_job,
+* parental_education_level,
+* internet_quality,
+* intracurricular_participation,
+* diet_quality  (is marginally significant at p ≈ 0.07).
+
+
+
+
+
+```{r, echo=FALSE, results='hide'}
+stargazer::stargazer(mod,type = "html")
+```

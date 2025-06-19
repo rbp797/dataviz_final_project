@@ -195,7 +195,7 @@ Hint: use the`{ggridges}` package, and the `geom_density_ridges()` function payi
 
 
 ```{r}
-ggplot(data = weather_tpa, mapping = aes(x = ave_temp,
+p1 <-  ggplot(data = weather_tpa, mapping = aes(x = ave_temp,
                                   y = month.name[ month],
                                   size = precipitation,
                                   colour = day))+
@@ -206,6 +206,14 @@ geom_point(alpha = .3) +
     x = "Average Temp",
        y = "Month") +
   theme(plot.title.position = "plot" )
+
+
+ggsave ("p1.jpg")
+```
+
+
+```{r}
+p1
 ```
 
 **Summary of Insights:**
